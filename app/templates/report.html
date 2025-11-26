@@ -1,56 +1,87 @@
 {% extends "base.html" %}
-{% block title %} Reports {% endblock %}
+{% block title %} System Reports Summary {% endblock %}
 
 {% block content %}
-
 <header>
-    <h2>Reports Summary</h2>
-    <div class="controls"></div>
+    <h2 id="pageTitle">📈 Comprehensive System Reports</h2>
+    <p class="subtitle">Summary of all registered users and attendance metrics.</p>
 </header>
 
-<div class="grid">
-
-    <div class="card">
-        <h3>Total Teachers</h3>
-        <div class="stat-value">{{ teachers}}</div>
+<section id="report-overview" class="page">
+    <h3>📊 Overall System Status</h3>
+    <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        
+        <div class="card stat-card" style="border-left: 5px solid var(--accent-primary);">
+            <p class="small">Total Registered Teachers</p>
+            <div class="stat-value">{{ data.total_teachers }}</div>
+        </div>
+        
+        <div class="card stat-card" style="border-left: 5px solid var(--accent-secondary);">
+            <p class="small">Total Enrolled Students</p>
+            <div class="stat-value">{{ data.total_students }}</div>
+        </div>
+        
+        <div class="card stat-card" style="border-left: 5px solid var(--accent-tertiary);">
+            <p class="small">Lifetime Attendance Entries</p>
+            <div class="stat-value">{{ data.total_entries }}</div>
+        </div>
     </div>
+</section>
 
-    <div class="card">
-        <h3>Total Students</h3>
-        <div class="stat-value">{{ students.name}}</div>
+---
+
+<section id="report-attendance">
+<h3>📋 Today's Attendance Snapshot ({{ today_date }})</h3>
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 20px;">
+        
+        <div class="card">
+            <h4>Present / Marked</h4>
+            <div class="stat-value" style="color: green;">{{ data.present_today }}</div>
+            <p class="small">Total students marked present/late today.</p>
+        </div>
+
+        <div class="card">
+            <h4>Late Arrivals</h4>
+            <div class="stat-value" style="color: orange;">{{ data.late_today }}</div>
+            <p class="small">Entries marked 'Late' based on policy.</p>
+        </div>
     </div>
+</section>
 
+---
+
+<section id="report-teachers-approval">
+    <h3>👨‍🏫 Pending Approvals</h3>
     <div class="card">
-        <h3>Total Attendance Entries</h3>
-        <div class="stat-value">{{ attendances }}</div>
+        {% if data.all_unapproved_teachers %}
+            <p class="small" style="color: var(--accent-tertiary);">The following teachers require admin approval to log in:</p>
+            <ul>
+                {% for teacher in data.all_unapproved_teachers %}
+                    <li>{{ teacher.name }} ({{ teacher.email }})</li>
+                {% endfor %}
+            </ul>
+            <a href="{{ url_for('dashboard.pending_requests') }}">Review Approval Queue</a>
+        {% else %}
+            <p style="color: green;">All teacher accounts are currently approved.</p>
+        {% endif %}
     </div>
+</section>
 
+---
+
+<section id="report-students-recent">
+    <h3>🎓 Recently Registered Students</h3>
     <div class="card">
-        <h3>Attendance Chart</h3>
-        <canvas id="attChart"></canvas>
+        <p class="small">Last 5 students registered (requires face enrollment).</p>
+        <ol>
+            {% for student in data.recently_added_students %}
+                <li>{{ student.name }} (Roll No: {{ student.roll_no }}) - Face: 
+                    {% if student.face_embedding %}✅{% else %}❌{% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        <a href="{{ url_for('dashboard.manage_students') }}">View All Students</a>
     </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-new Chart(document.getElementById("attChart"), {
-    type: "bar",
-    data: {
-        labels: {{ report_dates|safe }},
-        datasets: [{
-            label: "Attendance",
-            data: {{ report_counts|safe }},
-            backgroundColor: "rgba(99,102,241,0.7)",
-            borderRadius: 6
-        }]
-    },
-    options: {
-        plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true}}
-    }
-});
-</script>
+</section>
 
 {% endblock %}

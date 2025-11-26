@@ -21,7 +21,7 @@
 <br>
 
 
-
+{% if students %}
 <div class="card">
     <table>
         <thead>
@@ -32,13 +32,13 @@
                 <th>Roll NO</th>
                 <th>Contact</th>
                 <th>Face Registered</th>
+                <th>Login Approved</th>
                 <th>Action</th>
 
             </tr>
         </thead>
 
         <tbody>
-            {% if students %}
             {% for student in students %}
             <tr>
                 <td>{{ student.id }}</td>
@@ -54,13 +54,26 @@
                     {% endif %}
                 </td>
                 <td>
-                    <div class="table-actions">
+                    {% if student.is_approved %}
+                    Yes
+                    {% else %}
+                    No
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="table-actions" style="display:inline-block;">
                         <a href="{{ url_for('crud.update_student', student_id=student.id) }}">
-                            <span><button type="button" class="action-btn edit"><span class="icon">✏️</span>
-                                    Update</button></span>
+                            <button type="button" class="action-btn edit"><span class="icon">✏️</span>
+                                Update</button>
                         </a>
-                        <span><button type="button" class="action-btn delete"><span class="icon">🗑️</span>
-                                Delete</button></span>
+                    </div>
+                    <div class="table-actions" style="display:inline-block;">
+                        <form method="POST" action="{{ url_for('crud.delete_student', student_id=student.id) }}">
+                            <button type="submit" class="action-btn delete"
+                                onclick="return confirm('Are you sure you want to permanently delete {{ student.name }}? This cannot be undone.');"><span
+                                    class="icon">🗑️</span>
+                                Delete</button>
+                        </form>
                     </div>
                 </td>
 
@@ -68,10 +81,15 @@
 
             </tr>
             {% endfor %}
-            {% endif %}
         </tbody>
     </table>
 </div>
-
+{% else %}
+<div class="card">
+    <p style="color: var(--text-muted); padding: 20px; text-align:center;">
+        No student added yet.
+    </p>
+</div>
+{% endif %}
 
 {% endblock %}

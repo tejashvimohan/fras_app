@@ -5,24 +5,34 @@
 
 <h2>Pending Teacher Approvals</h2>
 {% for teacher in teachers %}
-    <p>{{ teacher.name }} ({{ teacher.email }})</p>
+<p>{{ teacher.name }} ({{ teacher.email }})</p>
+<div class="card">
     <form method="POST" style="display:inline;">
-        <input type="hidden" name="user_id" value="{{ teacher.id }}">
-        <input type="hidden" name="user_type" value="teacher">
+        <label for="user_id">User ID</label>
+        <input type="hidden" name="user_id" value="{{ teacher.id }}"><br>
+        <label for="user_type">User Type</label>
+        <input type="hidden" name="user_type" value="teacher"><br>
         <button type="submit" class="btn" name="action" value="approve">Approve</button>
         <button type="submit" class="btn" name="action" value="reject">Reject</button>
     </form>
+</div>
 {% endfor %}
 
 <h2>Pending Student Approvals</h2>
+<div class="card">
 {% for student in students %}
-    <p>{{ student.name }} ({{ student.email }})</p>
+
+<p>{{ student.name }} ({{ student.email }})</p>
+
     <form method="POST" style="display:inline;">
-        <input type="hidden" name="user_id" value="{{ student.id }}">
-        <input type="hidden" name="user_type" value="student">
-        <button type="submit" name="action" value="approve">Approve</button>
-        <button type="submit" name="action" value="reject">Reject</button>
+        <label for="user_id">User ID</label>
+        <input type="hidden" name="user_id" value="{{ student.id }}"><br>
+        <label for="user_type">User Type</label>
+        <input type="hidden" name="user_type" value="student"><br>
+        <button type="submit" class="btn" name="action" value="approve">Approve</button>
+        <button type="submit" class="btn" name="action" value="reject">Reject</button>
     </form>
+</div>
 {% endfor %}
 
 {% endblock %}

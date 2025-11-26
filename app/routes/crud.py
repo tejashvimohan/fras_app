@@ -26,13 +26,14 @@ def add_teacher():
        
         name = request.form.get('name')
         email = request.form.get('email')
+        contact= request.form.get('contact')
         password = request.form.get('password')
         
         if Teacher.query.filter_by(email=email).first():
                 flash('Email already registerd. Please try with different email.', 'error')
                 return redirect(url_for('crud.add_teacher'))
             
-        new_user = Teacher(name=name, email=email, password=password)   
+        new_user = Teacher(name=name, email=email, contact=contact, password=password)   
         db.session.add(new_user)
         db.session.commit()
         flash('Teacher Added Successfully.', 'success')
@@ -74,10 +75,24 @@ def update_teacher(teacher_id):
 #route for deleting teacher data via admin
 @crud_bp.route('/dashboard/teacher/delete/<int:teacher_id>', methods=["POST"])
 @role_required("admin")
-def delete_teacher():
-    
-    return render_template("manage_teacher.html")
+def delete_teacher(teacher_id):
+    deleted_teacher = Teacher.query.get_or_404(teacher_id)
 
+     
+    teacher = deleted_teacher.name
+    
+    try:
+        db.session.delete(deleted_teacher)
+        db.session.commit()
+        flash(f"Teacher '{teacher}' successfully deleted.", 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database Error during deletion: {e}")
+        flash("An error occurred during deletion.", 'danger')
+    
+    return redirect(url_for("dashboard.manage_teacher"))
+        
 #route for adding new student via admin or teacher
 @crud_bp.route('/dashboard/students/add', methods = ["GET","POST"])
 @role_required("admin", "teacher")
@@ -87,13 +102,14 @@ def add_student():
         name = request.form.get('name')
         email = request.form.get('email')
         roll_no = request.form.get('roll_no')
+        contact= request.form.get('contact')
         password = request.form.get('password')
         
         if Student.query.filter_by(email=email).first():
                 flash('Email already registerd. Please try with different email.', 'error')
                 return redirect(url_for('crud.add_student'))
             
-        new_user = Student(name=name, email=email, roll_no=roll_no, password=password)   
+        new_user = Student(name=name, email=email, roll_no=roll_no, contact=contact, password=password)   
         db.session.add(new_user)
         db.session.commit()
         flash('Student Added Successfully.', 'success')
@@ -111,6 +127,7 @@ def update_student(student_id):
         name = request.form.get('name')
         email = request.form.get('email')
         roll_no = request.form.get('roll_no')
+        contact = request.form.get('contact')
         password = request.form.get('password')
         
         email_check = Student.query.filter(
@@ -125,6 +142,7 @@ def update_student(student_id):
         updated_student.name = name
         updated_student.email = email
         updated_student.roll_no = roll_no
+        updated_student.contact = contact
         updated_student.password = password
     
         db.session.commit()
@@ -137,10 +155,23 @@ def update_student(student_id):
 #route for deleting student data via admin or teacher
 @crud_bp.route('/dashboard/students/delete/<int:student_id>', methods=["POST"])
 @role_required("admin", "teacher")
-def delete_student():
+def delete_student(student_id):
+    deleted_student = Student.query.get_or_404(student_id)
+
+     
+    student = deleted_student.name
     
+    try:
+        db.session.delete(deleted_student)
+        db.session.commit()
+        flash(f"Student '{student}' successfully deleted.", 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database Error during deletion: {e}")
+        flash("An error occurred during deletion.", 'danger')
     
-    return render_template("manage_students.html")
+    return redirect(url_for("dashboard.manage_students"))
         
 
         

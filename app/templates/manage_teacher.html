@@ -30,6 +30,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Contact</th>
+                <th>Login Approved</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -42,14 +43,26 @@
                 <td>{{ teacher.email }}</td>
                 <td>{{ teacher.contact }}</td>
                 <td>
-                    <div class="table-actions">
+                    {% if teacher.is_approved %}
+                    Yes
+                    {% else %}
+                    No
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="table-actions" style="display:inline-block">
                         <a href="{{ url_for('crud.update_teacher', teacher_id=teacher.id) }}">
-                            <span><button type="button" class="action-btn edit"><span class="icon">✏️</span>
-                                    Update</button></span>
+                            <button type="button" class="action-btn edit"><span class="icon">✏️</span>
+                                    Update</button>
                         </a>
-                        <span><button type="button" class="action-btn delete">
-                                <span class="icon">🗑️</span>Delete
-                            </button></span>
+                    </div>
+                    <div class="table-actions" style="display:inline-block;">
+                        <form method="POST" action="{{ url_for('crud.delete_teacher', teacher_id=teacher.id) }}">
+                            <button type="submit" class="action-btn delete"
+                                onclick="return confirm('Are you sure you want to permanently delete {{ teacher.name }}? This cannot be undone.');"><span
+                                    class="icon">🗑️</span>
+                                Delete</button>
+                        </form>
                     </div>
                 </td>
             </tr>

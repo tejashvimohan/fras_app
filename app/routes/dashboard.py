@@ -52,9 +52,9 @@ def report():
     return render_template('report.html',  teachers=all_teacher, students=all_students, attendances=attend)
 
 
-@dashboard_bp.route('/admin/approval_queue', methods=['GET', 'POST'])
+@dashboard_bp.route('/admin/requests', methods=['GET', 'POST'])
 @login_required('admin')
-def approval_queue():
+def pending_requests():
     # Fetch all pending users (Students and Teachers)
     pending_students = Student.query.filter_by(is_approved=False).all()
     pending_teachers = Teacher.query.filter_by(is_approved=False).all()
@@ -78,7 +78,7 @@ def approval_queue():
                 db.session.commit()
                 flash(f"{user.name} rejected and removed.", 'info')
 
-        return redirect(url_for('dashboard.approval_queue'))
+        return redirect(url_for('dashboard.pending_requests'))
         
     return render_template('approval_queue.html', students=pending_students, teachers=pending_teachers)
 

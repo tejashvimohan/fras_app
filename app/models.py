@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, date
+from datetime import datetime, date, time
 
     
     
@@ -52,13 +52,12 @@ class Student(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     # Relationship with attendance
-    attendances = db.relationship('Attendance', backref='student', lazy=True)
+    attendances = db.relationship('Attendance', backref='student', cascade="all, delete")
      # Relationship with report
     report = db.relationship('Report', backref='student', uselist=False)
     
     
    
-
     def __repr__(self):
         return f"<Student {self.name}>"
 
@@ -85,13 +84,15 @@ class Attendance(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
     date = db.Column(db.Date, default=date.today)
-    time_in = db.Column(db.Time, nullable=True)
-    time_out = db.Column(db.Time, nullable=True)
+    time_in = db.Column(db.DateTime, default=datetime.now) # Must be DateTime
+    time_out = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(10), default='Absent')  # Present/Absent/Late
     emotion_score = db.Column(db.Float, nullable=True)
     liveness_score = db.Column(db.Float, nullable=True)
     mode = db.Column(db.String(20), default='Face')  # Face/Voice/Both
-     
+    @staticmethod
+    def get_late_policy_time():
+        return 9, 0, 0
 
     def __repr__(self):
         return f"<Attendance {self.student_id} - {self.status}>"

@@ -5,11 +5,11 @@
 <header>
     <h2 id="pageTitle">✏️ Update Student: {{ student.name }}</h2>
     <div class="controls">
-        <a href="{{ url_for('dashboard.manage_students') }}" class="btn ghost">← Back to Students</a>
+        <a href="{{ url_for('dashboard.manage_students') }}"> <button class="btn">← Back to Students</button></a>
     </div>
 </header>
 
-<div class="grid">
+<div class="card">
     <div class="card" style="max-width: 500px; margin: auto;">
         <h3>Edit Student Details</h3>
         <p class="small">Use this form to modify student information or reset their password.</p>
@@ -32,7 +32,8 @@
 
             <div class="form-group">
                 <label for="contact">Contact</label>
-                <input type="text" id="contact" name="contact"  value="{{student.contact}}" placeholder="Enter student contact" required>
+                <input type="text" id="contact" name="contact" value="{{student.contact}}"
+                    placeholder="Enter student contact" required>
             </div><br>
 
             <div class="form-group">
@@ -47,17 +48,17 @@
                 <input type="password" id="password" name="password" placeholder="Enter new password to reset">
             </div>
 
-            <a href="{{ url_for('face_register.register_face', roll_no=student.roll_no) }}">
-                <button class="btn"> 🎥 Register Face</button>
-            </a>
 
 
             <button class="btn btn-primary" type="submit">💾 Save Changes</button>
             <a href="{{ url_for('dashboard.manage_students') }}"><button class="btn">✖
                     Cancel</button>
-            </a>
+            </a><br><br>
 
-        </form>
+        </form><br>
+        <a href="{{ url_for('face_register.register_face', roll_no=student.roll_no) }}">
+            <button class="btn"> 🎥 Register Face</button>
+        </a>
     </div>
 </div>
 {% endblock %}

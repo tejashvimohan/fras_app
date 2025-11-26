@@ -1,125 +1,107 @@
-from flask import Blueprint, render_template, Response, current_app, flash, redirect, url_for
-import cv2
-import numpy as np
-from datetime import date, datetime, time
+from flask import Blueprint, redirect, url_for, flash, render_template, session
+from app.models import Student, Attendance
+from app.recognition import mark_attendance_loop # Import the core logic
 from app import db
-from app.models import Attendance, Student, Teacher, Admin  # adapt if names differ
-from PIL import Image
+from sqlalchemy import func
+from datetime import datetime
+from functools import wraps # Ensure this is imported
 
-attendance_bp = Blueprint('attendance', __name__, template_folder='../templates', url_prefix='/attendance')
+# Assuming the blueprint and decorator are defined/imported
+# from .decorators import role_required 
+
+attendance_bp = Blueprint('attendance', __name__) 
 
 
-def mark_attendance_live():
-    print("[INFO] Loading Students from Database...")
+def role_required(*roles):
+    def decorator(f):
+        def wrapped(*args, **kwargs):
+            if 'user_type' not in session:
+                flash("Please log in first.", "warning")
+                return redirect(url_for("auth.login"))
+            if session['user_type'] not in roles:
+                flash("Access denied.", "danger")
+                return redirect(url_for("auth.login"))
+            return f(*args, **kwargs)
+        wrapped.__name__ = f.__name__
+        return wrapped
+    return decorator
+
+# --- ABSENTEE MARKING HELPER (Called after session ends) ---
+def mark_absentees_on_exit():
+    """
+    Marks all students who do not have a time_in record for today as Absent.
+    """
+    today = datetime.now().date()
+
+    # Get IDs of all students who ARE marked (Present or Late/Time_in set) today
+    present_or_late_ids = db.session.query(Attendance.student_id).filter(
+        func.date(Attendance.time_in) == today
+    ).distinct().subquery()
+
+    # Get all students who are NOT in the 'present_or_late_ids' subquery
+    absent_students = Student.query.filter(
+        Student.id.notin_(present_or_late_ids)
+    ).all()
+
+    absent_count = 0
     
-    # Fetch all students using SQLAlchemy
-    all_students = session.query(Student).all()
-    
-    # Pre-load embeddings into memory to avoid JSON decoding every frame
-    known_faces = []
-    for student in all_students:
-        known_faces.append({
-            "id": student.id,
-            "name": student.name,
-            "embedding": student.get_embedding() # Convert back to list
-        })
-    
-    if not known_faces:
-        print("[WARNING] Database is empty. Register students first.")
-        return
-
-    cap = cv2.VideoCapture(0)
-    recognized_today = {} 
-    
-    print("[INFO] System Active. Press 'q' to quit.")
-
-    while True:
-        ret, frame = cap.read()
-        if not ret: break
+    for student in absent_students:
+        # Create 'Absent' records
+        new_entry = Attendance(
+            student_id=student.id, 
+            time_in=datetime.now(), # Set time_in for the record date reference
+            status='Absent'
+        )
+        db.session.add(new_entry)
+        absent_count += 1
         
-        display_frame = frame.copy()
+    db.session.commit()
+    return absent_count
 
-        try:
-            # Detect faces in live frame
-            live_faces = DeepFace.represent(
-                img_path=frame,
-                model_name=MODEL_NAME,
-                detector_backend=DETECTOR_BACKEND,
-                enforce_detection=False
-            )
-            
-            for face_data in live_faces:
-                live_embedding = face_data["embedding"]
-                
-                # Draw logic
-                facial_area = face_data.get("facial_area", {})
-                x, y, w, h = facial_area.get("x", 0), facial_area.get("y", 0), facial_area.get("w", 0), facial_area.get("h", 0)
 
-                # Compare against DB
-                best_match = None
-                lowest_distance = 10.0 # Start high
-
-                for student in known_faces:
-                    dist = find_cosine_distance(live_embedding, student["embedding"])
-                    
-                    if dist < lowest_distance:
-                        lowest_distance = dist
-                        if dist <= THRESHOLD:
-                            best_match = student
-
-                if best_match:
-                    s_name = best_match["name"]
-                    s_id = best_match["id"]
-                    color = (0, 255, 0)
-                    
-                    # Log Attendance via SQLAlchemy
-                    if s_id not in recognized_today:
-                        new_log = Attendance(student_id=s_id)
-                        session.add(new_log)
-                        session.commit()
-                        
-                        recognized_today[s_id] = time.time()
-                        print(f"[ACCESS GRANTED] {s_name}")
-                    
-                    label = f"{s_name} ({round(lowest_distance, 2)})"
-                else:
-                    color = (0, 0, 255)
-                    label = "Unknown"
-
-                cv2.rectangle(display_frame, (x, y), (x+w, y+h), color, 2)
-                cv2.putText(display_frame, label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-
-        except ValueError:
-            pass # No face found
-        except Exception:
-            pass
-
-        cv2.imshow("Attendance (SQLAlchemy)", display_frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-# --- MAIN ---
-if __name__ == "__main__":
-    mode = input("Enter '1' to Register, '2' to Mark Attendance: ")
+@attendance_bp.route('/start_attendance_session')
+@role_required('admin', 'teacher')
+def start_attendance_session():
+    """Initiates the synchronous camera feed and marks absentees upon termination."""
+    from deepface import DeepFace 
     
-    if mode == '1':
-        uid = input("Enter User ID: ")
-        uname = input("Enter User Name: ")
-        register_student_ui(uid, uname)
-    elif mode == '2':
-        mark_attendance_live()
+    try:
+        mark_attendance_loop(db, Attendance, Student, DeepFace)
+        
+        # 1. Finalize Absentees
+        absent_count = mark_absentees_on_exit()
+        flash(f"Attendance session ended. {absent_count} students marked as Absent.", 'info')
+        
+    except Exception as e:
+        flash(f"Error starting attendance system: {e}", 'danger')
+        
+    return redirect(url_for('dashboard.manage_students')) 
 
 
+@attendance_bp.route('/view_attendance_records')
+@role_required('admin', 'teacher')
+def view_attendance_records():
+    """Fetches and displays all attendance records with status."""
+    
+    attendance_records = db.session.query(
+        Attendance.time_in,
+        Attendance.time_out,
+        Student.name,
+        Student.roll_no,
+        Attendance.status 
+    ).join(Student).order_by(Attendance.time_in.desc()).all()
+    
+    return render_template('attendance.html', records=attendance_records)
 
-
-
-
-
-
-   
-
-
-
+# --- ROUTE TO TRIGGER ABSENTEE MARKING MANUALLY ---
+@attendance_bp.route('/mark_absentees', methods=['POST'])
+@role_required('admin', 'teacher')
+def mark_absentees():
+    """Administrative trigger for absentee marking."""
+    try:
+        absent_count = mark_absentees_on_exit()
+        flash(f"{absent_count} students were successfully marked as Absent.", 'warning')
+    except Exception as e:
+        flash("Failed to mark absentees. Ensure the attendance window is closed.", 'danger')
+        
+    return redirect(url_for('attendance.view_attendance_records'))

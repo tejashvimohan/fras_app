@@ -6,7 +6,9 @@
     <h2 id="pageTitle">Admin Dashboard</h2>
     <div class="controls">
         <input id="search" placeholder="🔍 Search..." style="min-width:200px">
-        <span class="small">💾 Request</span>
+        <a href="{{ url_for('dashboard.pending_requests')}}">
+            <span class="small"><button class="btn">💾 Requests</button></span>
+        </a>
     </div>
 </header>
 
@@ -44,36 +46,6 @@
     </div>
 </section>
 
-
-                   
-
-
-                   
-
-<section id="reports" class="page" style="display:none">
-    <div class="grid">
-        <div class="card">
-            <h3>Summary Report</h3>
-            <p class="small">Current system statistics</p>
-            <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
-                <div
-                    style="display:flex;justify-content:space-between;padding:12px;background:var(--glass);border-radius:8px">
-                    <span>Total Teachers:</span>
-                    <strong id="reportTeachers" style="color:var(--accent-primary)">0</strong>
-                </div>
-                <div
-                    style="display:flex;justify-content:space-between;padding:12px;background:var(--glass);border-radius:8px">
-                    <span>Total Students:</span>
-                    <strong id="reportStudents" style="color:var(--accent-secondary)">0</strong>
-                </div>
-                <div
-                    style="display:flex;justify-content:space-between;padding:12px;background:var(--glass);border-radius:8px">
-                    <span>Attendance Entries:</span>
-                    <strong id="reportAttendance" style="color:var(--accent-tertiary)">0</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+      
 
 {% endblock%}

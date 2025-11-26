@@ -13,9 +13,9 @@ def register():
         user_type = request.form.get('user_type')
         name = request.form.get('name')
         email = request.form.get('email')
+        roll_no = request.form.get('roll_no')
         contact = request.form.get('contact')
         password = request.form.get('password')
-        roll_no = request.form.get('roll_no')
         
         
         #For registering admin
@@ -64,9 +64,9 @@ def register():
             new_user = Student(
                 name=name, 
                 email=email, 
+                roll_no=roll_no,                
                 contact=contact,
                 password=password, 
-                roll_no=roll_no,
                 is_approved=False
             )
             

@@ -1,102 +1,84 @@
-{% extends "base.html" %}
-{% block title %} Attendance {% endblock %}
+{% extends "base.html"%}
+{% block title %} Attendance Log {% endblock %}
 
 {% block content %}
-
 <header>
-    <h2 id="pageTitle">Attendance Records</h2>
+    <h2 id="pageTitle">📋 Attendance Log & Marking</h2>
     <div class="controls">
-        <input id="search" name="search" placeholder="🔍 Search student..." 
-               value="{{ request.args.get('search','') }}" 
-               style="min-width:220px">
-
-        <select  id="statusFilter" name="status">
-            <option style="color: black;" value="">All Status</option>
-            <option style="color: black;" value="Present" {% if request.args.get('status')=='Present' %}selected{% endif %}>Present</option>
-            <option style="color: black;"  value="Absent" {% if request.args.get('status')=='Absent' %}selected{% endif %}>Absent</option>
-        </select>
-
-        <input type="date" id="dateFilter" name="date" value="{{ request.args.get('date','') }}">
-
-        <button class="btn" onclick="applyFilters()">Apply</button>
+        <a href="{{ url_for('attendance.start_attendance_session') }}">
+            <button class="btn btn-primary">
+                🎥 Start Live Attendance Session
+            </button>
+        </a>
     </div>
 </header>
 
-<script>
-function applyFilters() {
-    const s = document.getElementById('search').value;
-    const st = document.getElementById('statusFilter').value;
-    const d = document.getElementById('dateFilter').value;
-    window.location = `?search=${s}&status=${st}&date=${d}`;
-}
-</script>
-
-{% if attendances and attendances.items|length > 0 %}
-
 <div class="card">
-    <div class="table-wrap">
+    <h3>Attendance Records History</h3>
+
+    {% if records %}
+    <div class="table-responsive">
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Student</th>
+                    <th>Date</th>
+                    <th>Roll No.</th>
+                    <th>Student Name</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
                     <th>Status</th>
-                    <th>Time</th>
-                    <th>Action</th>
                 </tr>
             </thead>
-
             <tbody>
-                {% for a in attendances.items %}
+                {% for record in records %}
                 <tr>
-                    <td>{{ a.id }}</td>
-                    <td>{{ a.student.name }}</td>
-
+                    <td>{{ record.time_in.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ record.roll_no }}</td>
+                    <td>{{ record.name }}</td>
+                    
+                    <td>{{ record.time_in.strftime('%H:%M:%S') }}</td>
+                    
                     <td>
-                        {% if a.status == 'Present' %}
-                        <span class="badge badge-success">Present</span>
+                        {% if record.time_out %}
+                            {{ record.time_out.strftime('%H:%M:%S') }}
                         {% else %}
-                        <span class="badge badge-danger">Absent</span>
+                            —
                         {% endif %}
-                    </td>
-
-                    <td>{{ a.timestamp }}</td>
-
+                    </td> 
+                    
                     <td>
-                        <div class="table-actions">
-                            <button class="action-btn delete"
-                                onclick="if(confirm('Delete record?')) window.location='{{ url_for('dashboard.delete_attendance', id=a.id) }}'">
-                                🗑️ Delete
-                            </button>
-                        </div>
-                    </td>
+                        {% if record.status == 'Late' %}
+                            <span style="color: orange; font-weight: bold;">LATE</span>
+                        {% elif record.status == 'Present' %}
+                            <span style="color: green;">PRESENT</span>
+                        {% elif record.status == 'Absent' %}
+                            <span style="color: red; font-weight: bold;">ABSENT</span>
+                        {% else %}
+                            {{ record.status }}
+                        {% endif %}
+                    </td> 
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-
-    <!-- Pagination -->
-    <div style="margin-top:20px; text-align:center;">
-        {% if attendances.has_prev %}
-        <a href="{{ url_for('dashboard.attendance', page=attendance.prev_num) }}" class="btn ghost">⬅ Prev</a>
-        {% endif %}
-
-        <span style="margin:0 10px;">Page {{ attendances.page }} of {{ attendances.pages }}</span>
-
-        {% if attendances.has_next %}
-        <a href="{{ url_for('dashboard.attendance', page=attendance.next_num) }}" class="btn ghost">Next ➡</a>
-        {% endif %}
-    </div>
-
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary);">No attendance records found yet.</p>
+    {% endif %}
 </div>
 
-{% else %}
-<div class="card" style="padding:40px; text-align:center;">
-    <div style="font-size:48px; opacity:0.6;">📭</div>
-    <h3>No Attendance Records Found</h3>
-    <p class="small">Try changing filters or add new entries.</p>
+---
+
+<div style="margin-top: 30px; text-align: center; padding: 20px;">
+    <p style="margin-bottom: 15px;">After the final cut-off time, use this button to mark all students who lack a record:</p>
+    
+    <form method="POST" action="{{ url_for('attendance.mark_absentees') }}" style="display:inline-block;">
+        <button type="submit" class="btn" style="background: var(--accent-danger);"
+                onclick="return confirm('WARNING: Are you sure you want to mark all uncounted students as ABSENT for today? This cannot be easily undone.');">
+            👻 Finalize Absentees for Today
+        </button>
+    </form>
 </div>
-{% endif %}
+
 
 {% endblock %}

@@ -27,6 +27,8 @@ def create_app():
     from app.routes.home import home_bp
     from app.routes.face_register import face_register_bp
     from app.routes.crud import crud_bp
+    from app.routes.attendance import attendance_bp
+    from app.routes.report import report_bp
     
     #register blueprint
     app.register_blueprint(auth_bp)
@@ -35,6 +37,8 @@ def create_app():
     app.register_blueprint(home_bp)  
     app.register_blueprint(face_register_bp)
     app.register_blueprint(crud_bp)
+    app.register_blueprint(attendance_bp)
+    app.register_blueprint(report_bp)
     
     return app
      
