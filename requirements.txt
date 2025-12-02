@@ -12,7 +12,7 @@ psycopg2-binary # Required for PostgreSQL on Render
 
 # --- Deep Learning & Face Recognition ---
 deepface
-tensorflow-cpu
+
 keras
 mtcnn
 retina-face
