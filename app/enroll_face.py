@@ -7,8 +7,9 @@ from app.models import Student
 
 # --- CONFIGURATION ---
 DETECTOR_BACKEND = "opencv" 
-MODEL_NAME = "VGG-Face"     
-THRESHOLD = 0.7           
+MODEL_NAME = "VGG-Face, FaceNet"     
+THRESHOLD = 0.9
+        
 
 
 
@@ -71,7 +72,7 @@ def check_face_duplicate(new_embedding_blob, roll_no):
     
     existing_students = Student.query.filter(Student.face_embedding.isnot(None)).all()
     
-    THRESHOLD = 0.7
+    
 
     for student in existing_students:
         if student.roll_no == roll_no:

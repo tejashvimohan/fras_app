@@ -14,7 +14,7 @@ from sqlalchemy import func
 DETECTOR_BACKEND = "opencv" 
 MODEL_NAME = "VGG-Face"
 # Threshold for Cosine Distance (usually 0.25 to 0.40 is common)
-THRESHOLD = 0.40 
+THRESHOLD = 0.50 
 
 # --- DISTANCE METRIC FUNCTION ---
 def find_cosine_distance(source_representation, test_representation):

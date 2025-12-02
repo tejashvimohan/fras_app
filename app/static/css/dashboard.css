@@ -686,7 +686,7 @@ canvas {
 .alert-danger {
     background-color: rgba(236, 72, 153, 0.15);
     /* Pinkish background */
-    color: var(--accent-tertiary);
+    color: var(--error);
     /* Bright pink text */
     border: 1px solid #ec4899;
 }

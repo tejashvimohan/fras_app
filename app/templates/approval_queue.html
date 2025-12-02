@@ -3,36 +3,72 @@
 {% block content %}
 
 
-<h2>Pending Teacher Approvals</h2>
-{% for teacher in teachers %}
-<p>{{ teacher.name }} ({{ teacher.email }})</p>
-<div class="card">
-    <form method="POST" style="display:inline;">
-        <label for="user_id">User ID</label>
-        <input type="hidden" name="user_id" value="{{ teacher.id }}"><br>
-        <label for="user_type">User Type</label>
-        <input type="hidden" name="user_type" value="teacher"><br>
-        <button type="submit" class="btn" name="action" value="approve">Approve</button>
-        <button type="submit" class="btn" name="action" value="reject">Reject</button>
-    </form>
-</div>
-{% endfor %}
+<h2>Pending Teacher Approvals</h2><br>
+<div class="card" style="display:contents;">
+    {% for teacher in teachers %}
 
-<h2>Pending Student Approvals</h2>
-<div class="card">
-{% for student in students %}
-
-<p>{{ student.name }} ({{ student.email }})</p>
+    <h4>{{ teacher.name }} ({{ teacher.email }})</h4><br>
 
     <form method="POST" style="display:inline;">
-        <label for="user_id">User ID</label>
-        <input type="hidden" name="user_id" value="{{ student.id }}"><br>
-        <label for="user_type">User Type</label>
-        <input type="hidden" name="user_type" value="student"><br>
-        <button type="submit" class="btn" name="action" value="approve">Approve</button>
-        <button type="submit" class="btn" name="action" value="reject">Reject</button>
+        <div class="card" style="margin: 0px 700px 0px 10px;">
+            <div class="form-group">
+                <label for="teacher_id">Teacher ID</label><br>
+                <input type="number" id="teacher_id" name="teacher_id" value="{{ teacher.id }}" required>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="name">Full Name</label><br>
+                <input type="text" id="name" name="name" value="{{ teacher.name }}" placeholder="Full name" required>
+            </div>
+
+            <br>
+            <div class="form-group">
+                <label for="email">Email</label><br>
+                <input type="email" id="email" name="email" value="{{ teacher.email }}" placeholder="Email address"
+                    required>
+            </div>
+            <br>
+            <span><button type="submit" class="btn" name="action" value="approve">Approve</button></span>
+            <span><button type="submit" class="btn" name="action" value="reject">Reject</button>
+            </span>
+            <br><br>
+        </div><br>
     </form>
+    {% endfor %}
 </div>
-{% endfor %}
+
+
+<h2>Pending Student Approvals</h2><br>
+<div class="card" style="display:contents;">
+    {% for student in students %}
+
+    <h4>{{ student.name }} ({{ student.email }})</h4><br>
+
+    <form method="POST" style="display:inline;">
+        <div class="card" style="margin: 0px 700px 0px 10px;">
+            <div class="form-group">
+                <label for="student_id">Student ID</label><br>
+                <input type="number" id="student_id" name="student_id" value="{{ student.id }}" required>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="name">Full Name</label><br>
+                <input type="text" id="name" name="name" value="{{ student.name }}" placeholder="Full name" required>
+            </div>
+
+            <br>
+            <div class="form-group">
+                <label for="email">Email</label><br>
+                <input type="email" id="email" name="email" value="{{ student.email }}" placeholder="Email address"
+                    required>
+            </div>
+            <br>
+            <span><button type="submit" class="btn" name="action" value="approve">Approve</button></span>
+            <span><button type="submit" class="btn" name="action" value="reject">Reject</button></span><br><br>
+        </div><br>
+    </form>
+    {% endfor %}
+</div>
+
 
 {% endblock %}
